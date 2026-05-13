@@ -102,6 +102,8 @@
           class="fas fa-envelope"></i> Mesaj</a>
       <a href="#" class="topnav-link" data-page="yatirim-testi" onclick="gitSayfa('yatirim-testi',event)"><i
           class="fas fa-chart-line"></i> Yatırım</a>
+      <a href="#" class="topnav-link" data-page="grafik-analiz" onclick="gitSayfa('grafik-analiz',event)"><i
+          class="fas fa-chart-area"></i> Grafik</a>
       <a href="#" class="topnav-link" data-page="hakkimizda" onclick="gitSayfa('hakkimizda',event)"><i
           class="fas fa-info-circle"></i> Hakkımızda</a>
     </div>
@@ -184,7 +186,7 @@
         <div class="stat-item">
           <div class="stat-icon gold-icon"><i class="fas fa-cubes"></i></div>
           <div>
-            <div class="stat-value counter" data-target="3">0</div>
+            <div class="stat-value counter" data-target="4">0</div>
             <div class="stat-label">Analiz Modülü</div>
           </div>
         </div>
@@ -282,6 +284,21 @@
           <div class="card-arrow"><i class="fas fa-arrow-right"></i></div>
         </div>
 
+        <!-- Grafik Analiz -->
+        <div class="bento-card glow-border" onclick="gitSayfa('grafik-analiz')">
+          <div class="bento-card-glow"></div>
+          <div class="bento-icon" style="background:rgba(99,102,241,0.12);color:#818cf8;"><i class="fas fa-chart-area"></i></div>
+          <h3>Grafik Analiz</h3>
+          <p>Hisse, kripto, emtia ve döviz varlıklarının son 2 yıllık fiyat grafiğini inceleyin. Detaylı teknik veriler ve istatistikler.</p>
+          <div class="bento-features">
+            <span><i class="fas fa-check"></i> 2 Yıl Grafik</span>
+            <span><i class="fas fa-check"></i> Teknik İstatistik</span>
+            <span><i class="fas fa-check"></i> 100+ Varlık</span>
+          </div>
+          <div class="bento-badge" style="background:rgba(99,102,241,0.12);color:#818cf8;"><i class="fas fa-chart-area"></i> Yeni</div>
+          <div class="card-arrow"><i class="fas fa-arrow-right"></i></div>
+        </div>
+
         <!-- Piyasa Analiz Özetleri (FULL WIDTH) -->
         <div class="bento-card full" onclick="gitSayfa('piyasa')">
           <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">
@@ -360,7 +377,8 @@
           <a href="#" onclick="gitSayfa('link-analiz',event)"><i class="fas fa-link"></i> Link Analizi</a>
           <a href="#" onclick="gitSayfa('eposta-analiz',event)"><i class="fas fa-envelope"></i> Mesaj Analizi</a>
           <a href="#" onclick="gitSayfa('yatirim-testi',event)"><i class="fas fa-chart-line"></i> Yatırım Testi</a>
-          <a href="#" onclick="gitSayfa('piyasa',event)"><i class="fas fa-chart-mixed"></i> Piyasalar</a>
+          <a href="#" onclick="gitSayfa('grafik-analiz',event)"><i class="fas fa-chart-area"></i> Grafik Analiz</a>
+          <a href="#" onclick="gitSayfa('piyasa',event)"><i class="fas fa-chart-line"></i> Piyasalar</a>
           <a href="#" onclick="gitSayfa('hakkimizda',event)"><i class="fas fa-info-circle"></i> Hakkımızda</a>
         </div>
         <div class="footer-tech">
@@ -429,48 +447,109 @@
           <div class="piyasa-item loading-placeholder">Yükleniyor...</div>
         </div>
 
-        <!-- HİSSE GRAFİĞİ -->
-        <div class="section-title" style="margin-top:40px;"><i class="fas fa-chart-area" style="color:var(--accent)"></i> Hisse / Varlık Grafiği <span style="font-size:0.75rem;color:var(--text-muted);font-weight:400;">(Son 2 Yıl)</span></div>
-        <div class="glass-card" id="hisse-grafik-card">
-          <div class="hisse-grafik-search">
-            <div class="input-satirı" style="margin-bottom:12px;">
-              <i class="fas fa-search"></i>
-              <input type="text" id="hisse-grafik-input" placeholder="Sembol girin (ör: AAPL, THYAO.IS, BTC-USD)" style="flex:1;">
-              <button class="btn-analiz" onclick="hisseGrafikYukle()">Grafik Getir <i class="fas fa-chart-line"></i></button>
-            </div>
-            <div class="hisse-quick-btns">
-              <button onclick="hisseGrafikSec('AAPL')">🍎 Apple</button>
-              <button onclick="hisseGrafikSec('MSFT')">🪟 Microsoft</button>
-              <button onclick="hisseGrafikSec('NVDA')">🟢 NVIDIA</button>
-              <button onclick="hisseGrafikSec('TSLA')">⚡ Tesla</button>
-              <button onclick="hisseGrafikSec('GOOGL')">🔍 Google</button>
-              <button onclick="hisseGrafikSec('AMZN')">📦 Amazon</button>
-              <button onclick="hisseGrafikSec('THYAO.IS')">✈️ THY</button>
-              <button onclick="hisseGrafikSec('GARAN.IS')">🏦 Garanti</button>
-              <button onclick="hisseGrafikSec('BTC-USD')">₿ Bitcoin</button>
-              <button onclick="hisseGrafikSec('ETH-USD')">Ξ Ethereum</button>
-              <button onclick="hisseGrafikSec('GC=F')">🥇 Altın</button>
-              <button onclick="hisseGrafikSec('CL=F')">🛢️ Petrol</button>
-            </div>
+      </div>
+    </section>
+
+    <!-- ===== GRAFİK ANALİZ ===== -->
+    <section id="sayfa-grafik-analiz" class="sayfa">
+      <div class="sayfa-baslik">
+        <h1><i class="fas fa-chart-area" style="color:#818cf8;"></i> Grafik Analiz</h1>
+        <p>Hisse, kripto, emtia ve döviz varlıklarının son 2 yıllık fiyat performansını detaylı inceleyin.</p>
+      </div>
+      <div style="max-width:1100px;">
+
+        <!-- Arama -->
+        <div class="glass-card" style="margin-bottom:24px;">
+          <h2 style="font-size:1.1rem;font-weight:700;margin-bottom:14px;"><i class="fas fa-search" style="color:#818cf8;margin-right:8px;"></i>Varlık Ara</h2>
+          <div class="input-satirı" style="margin-bottom:16px;">
+            <i class="fas fa-chart-area" style="color:#818cf8;"></i>
+            <input type="text" id="hisse-grafik-input" placeholder="Sembol girin (ör: AAPL, THYAO.IS, BTC-USD, GC=F)" style="flex:1;">
+            <button class="btn-analiz" onclick="hisseGrafikYukle()" style="background:linear-gradient(135deg,#6366f1,#818cf8);">Grafik Getir <i class="fas fa-chart-line"></i></button>
           </div>
-          <div id="hisse-grafik-loading" style="display:none;text-align:center;padding:40px;color:var(--text-muted);">
-            <i class="fas fa-spinner fa-spin" style="font-size:1.5rem;"></i><br><span style="margin-top:8px;display:inline-block;">Veri yükleniyor...</span>
+          <p style="color:var(--text-muted);font-size:0.78rem;margin-bottom:0;"><i class="fas fa-info-circle"></i> BIST hisseleri için <strong>.IS</strong> ekleyin (ör: THYAO.IS). Kripto için <strong>-USD</strong> ekleyin (ör: BTC-USD). Emtia sembolleri: GC=F (Altın), CL=F (Petrol).</p>
+        </div>
+
+        <!-- Popüler Hisseler -->
+        <div class="section-title"><i class="fas fa-fire" style="color:var(--red);"></i> Popüler ABD Hisseleri</div>
+        <div class="grafik-kategori-grid">
+          <button class="grafik-kat-btn" onclick="hisseGrafikSec('AAPL')"><span class="gk-icon">🍎</span><span class="gk-name">Apple</span><span class="gk-sym">AAPL</span></button>
+          <button class="grafik-kat-btn" onclick="hisseGrafikSec('MSFT')"><span class="gk-icon">🪟</span><span class="gk-name">Microsoft</span><span class="gk-sym">MSFT</span></button>
+          <button class="grafik-kat-btn" onclick="hisseGrafikSec('NVDA')"><span class="gk-icon">🟢</span><span class="gk-name">NVIDIA</span><span class="gk-sym">NVDA</span></button>
+          <button class="grafik-kat-btn" onclick="hisseGrafikSec('TSLA')"><span class="gk-icon">⚡</span><span class="gk-name">Tesla</span><span class="gk-sym">TSLA</span></button>
+          <button class="grafik-kat-btn" onclick="hisseGrafikSec('GOOGL')"><span class="gk-icon">🔍</span><span class="gk-name">Google</span><span class="gk-sym">GOOGL</span></button>
+          <button class="grafik-kat-btn" onclick="hisseGrafikSec('AMZN')"><span class="gk-icon">📦</span><span class="gk-name">Amazon</span><span class="gk-sym">AMZN</span></button>
+          <button class="grafik-kat-btn" onclick="hisseGrafikSec('META')"><span class="gk-icon">📘</span><span class="gk-name">Meta</span><span class="gk-sym">META</span></button>
+          <button class="grafik-kat-btn" onclick="hisseGrafikSec('NFLX')"><span class="gk-icon">🎬</span><span class="gk-name">Netflix</span><span class="gk-sym">NFLX</span></button>
+        </div>
+
+        <!-- BIST Hisseleri -->
+        <div class="section-title" style="margin-top:28px;"><i class="fas fa-landmark" style="color:var(--accent);"></i> BIST Hisseleri</div>
+        <div class="grafik-kategori-grid">
+          <button class="grafik-kat-btn" onclick="hisseGrafikSec('THYAO.IS')"><span class="gk-icon">✈️</span><span class="gk-name">THY</span><span class="gk-sym">THYAO.IS</span></button>
+          <button class="grafik-kat-btn" onclick="hisseGrafikSec('GARAN.IS')"><span class="gk-icon">🏦</span><span class="gk-name">Garanti</span><span class="gk-sym">GARAN.IS</span></button>
+          <button class="grafik-kat-btn" onclick="hisseGrafikSec('AKBNK.IS')"><span class="gk-icon">🏦</span><span class="gk-name">Akbank</span><span class="gk-sym">AKBNK.IS</span></button>
+          <button class="grafik-kat-btn" onclick="hisseGrafikSec('KCHOL.IS')"><span class="gk-icon">🏢</span><span class="gk-name">Koç Holding</span><span class="gk-sym">KCHOL.IS</span></button>
+          <button class="grafik-kat-btn" onclick="hisseGrafikSec('EREGL.IS')"><span class="gk-icon">🔩</span><span class="gk-name">Ereğli</span><span class="gk-sym">EREGL.IS</span></button>
+          <button class="grafik-kat-btn" onclick="hisseGrafikSec('SISE.IS')"><span class="gk-icon">🏭</span><span class="gk-name">Şişecam</span><span class="gk-sym">SISE.IS</span></button>
+          <button class="grafik-kat-btn" onclick="hisseGrafikSec('ASELS.IS')"><span class="gk-icon">🛡️</span><span class="gk-name">Aselsan</span><span class="gk-sym">ASELS.IS</span></button>
+          <button class="grafik-kat-btn" onclick="hisseGrafikSec('BIMAS.IS')"><span class="gk-icon">🛒</span><span class="gk-name">BİM</span><span class="gk-sym">BIMAS.IS</span></button>
+        </div>
+
+        <!-- Kripto -->
+        <div class="section-title" style="margin-top:28px;"><i class="fas fa-bitcoin-sign" style="color:#f7931a;"></i> Kripto Paralar</div>
+        <div class="grafik-kategori-grid">
+          <button class="grafik-kat-btn" onclick="hisseGrafikSec('BTC-USD')"><span class="gk-icon">₿</span><span class="gk-name">Bitcoin</span><span class="gk-sym">BTC-USD</span></button>
+          <button class="grafik-kat-btn" onclick="hisseGrafikSec('ETH-USD')"><span class="gk-icon">Ξ</span><span class="gk-name">Ethereum</span><span class="gk-sym">ETH-USD</span></button>
+          <button class="grafik-kat-btn" onclick="hisseGrafikSec('SOL-USD')"><span class="gk-icon">◎</span><span class="gk-name">Solana</span><span class="gk-sym">SOL-USD</span></button>
+          <button class="grafik-kat-btn" onclick="hisseGrafikSec('BNB-USD')"><span class="gk-icon">🔶</span><span class="gk-name">BNB</span><span class="gk-sym">BNB-USD</span></button>
+          <button class="grafik-kat-btn" onclick="hisseGrafikSec('XRP-USD')"><span class="gk-icon">💧</span><span class="gk-name">XRP</span><span class="gk-sym">XRP-USD</span></button>
+          <button class="grafik-kat-btn" onclick="hisseGrafikSec('ADA-USD')"><span class="gk-icon">🔵</span><span class="gk-name">Cardano</span><span class="gk-sym">ADA-USD</span></button>
+          <button class="grafik-kat-btn" onclick="hisseGrafikSec('DOGE-USD')"><span class="gk-icon">🐕</span><span class="gk-name">Doge</span><span class="gk-sym">DOGE-USD</span></button>
+          <button class="grafik-kat-btn" onclick="hisseGrafikSec('AVAX-USD')"><span class="gk-icon">🔺</span><span class="gk-name">Avalanche</span><span class="gk-sym">AVAX-USD</span></button>
+        </div>
+
+        <!-- Emtia & Döviz -->
+        <div class="section-title" style="margin-top:28px;"><i class="fas fa-gem" style="color:var(--gold);"></i> Emtia & Döviz</div>
+        <div class="grafik-kategori-grid">
+          <button class="grafik-kat-btn" onclick="hisseGrafikSec('GC=F')"><span class="gk-icon">🥇</span><span class="gk-name">Altın</span><span class="gk-sym">GC=F</span></button>
+          <button class="grafik-kat-btn" onclick="hisseGrafikSec('SI=F')"><span class="gk-icon">🥈</span><span class="gk-name">Gümüş</span><span class="gk-sym">SI=F</span></button>
+          <button class="grafik-kat-btn" onclick="hisseGrafikSec('CL=F')"><span class="gk-icon">🛢️</span><span class="gk-name">Petrol (WTI)</span><span class="gk-sym">CL=F</span></button>
+          <button class="grafik-kat-btn" onclick="hisseGrafikSec('BZ=F')"><span class="gk-icon">⛽</span><span class="gk-name">Brent Petrol</span><span class="gk-sym">BZ=F</span></button>
+          <button class="grafik-kat-btn" onclick="hisseGrafikSec('NG=F')"><span class="gk-icon">🔥</span><span class="gk-name">Doğal Gaz</span><span class="gk-sym">NG=F</span></button>
+          <button class="grafik-kat-btn" onclick="hisseGrafikSec('USDTRY=X')"><span class="gk-icon">💵</span><span class="gk-name">USD/TRY</span><span class="gk-sym">USDTRY=X</span></button>
+          <button class="grafik-kat-btn" onclick="hisseGrafikSec('EURTRY=X')"><span class="gk-icon">💶</span><span class="gk-name">EUR/TRY</span><span class="gk-sym">EURTRY=X</span></button>
+          <button class="grafik-kat-btn" onclick="hisseGrafikSec('GBPTRY=X')"><span class="gk-icon">💷</span><span class="gk-name">GBP/TRY</span><span class="gk-sym">GBPTRY=X</span></button>
+        </div>
+
+        <!-- Grafik Sonuç Alanı -->
+        <div class="glass-card" style="margin-top:28px;" id="hisse-grafik-card">
+          <div id="hisse-grafik-bos" style="text-align:center;padding:50px 20px;color:var(--text-muted);">
+            <i class="fas fa-chart-area" style="font-size:3rem;color:#818cf8;opacity:0.3;display:block;margin-bottom:16px;"></i>
+            <p style="font-size:1rem;font-weight:600;margin-bottom:6px;">Henüz bir varlık seçilmedi</p>
+            <p style="font-size:0.82rem;">Yukarıdaki kategorilerden bir varlık seçin veya arama kutusuna sembol yazın.</p>
           </div>
-          <div id="hisse-grafik-error" style="display:none;text-align:center;padding:30px;color:var(--red);">
-            <i class="fas fa-exclamation-triangle"></i> <span id="hisse-grafik-error-text">Veri bulunamadı.</span>
+          <div id="hisse-grafik-loading" style="display:none;text-align:center;padding:50px 20px;color:var(--text-muted);">
+            <i class="fas fa-spinner fa-spin" style="font-size:2rem;color:#818cf8;"></i>
+            <p style="margin-top:16px;font-weight:500;">Veriler yükleniyor...</p>
+            <p style="font-size:0.78rem;color:var(--text-muted);">yfinance'den veri çekiliyor, lütfen bekleyin.</p>
+          </div>
+          <div id="hisse-grafik-error" style="display:none;text-align:center;padding:40px 20px;">
+            <i class="fas fa-exclamation-triangle" style="font-size:2rem;color:var(--red);"></i>
+            <p id="hisse-grafik-error-text" style="margin-top:12px;font-weight:600;color:var(--red);">Veri bulunamadı.</p>
+            <p style="font-size:0.82rem;color:var(--text-muted);">Sembolü kontrol edip tekrar deneyin.</p>
           </div>
           <div id="hisse-grafik-sonuc" style="display:none;">
             <div class="hisse-grafik-header">
               <div>
-                <h3 id="hisse-grafik-title" style="margin:0;font-size:1.2rem;font-weight:800;"></h3>
-                <span id="hisse-grafik-subtitle" style="color:var(--text-muted);font-size:0.8rem;"></span>
+                <h3 id="hisse-grafik-title" style="margin:0;font-size:1.3rem;font-weight:800;"></h3>
+                <span id="hisse-grafik-subtitle" style="color:var(--text-muted);font-size:0.82rem;"></span>
               </div>
               <div style="text-align:right;">
-                <div id="hisse-grafik-price" style="font-size:1.4rem;font-weight:800;"></div>
-                <div id="hisse-grafik-change" style="font-size:0.85rem;font-weight:600;"></div>
+                <div id="hisse-grafik-price" style="font-size:1.6rem;font-weight:800;"></div>
+                <div id="hisse-grafik-change" style="font-size:0.9rem;font-weight:600;"></div>
               </div>
             </div>
-            <div style="position:relative;height:320px;margin:20px 0;">
+            <div style="position:relative;height:380px;margin:24px 0;">
               <canvas id="hisse-grafik-canvas"></canvas>
             </div>
             <div class="hisse-grafik-stats">
@@ -491,6 +570,28 @@
                 <span class="hg-stat-val" id="hg-stat-currency"></span>
               </div>
             </div>
+          </div>
+        </div>
+
+        <!-- Bilgi Kartları -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:24px;">
+          <div class="glass-card">
+            <h3 style="font-size:0.95rem;font-weight:700;margin-bottom:10px;"><i class="fas fa-lightbulb" style="color:var(--accent);margin-right:6px;"></i>Nasıl Kullanılır?</h3>
+            <ul style="color:var(--text-sec);font-size:0.82rem;line-height:2;padding-left:16px;margin:0;">
+              <li>Kategorilerden hızlıca varlık seçin veya arama kutusuna sembol yazın</li>
+              <li>Grafik üzerinde fareyi gezdirerek tarihsel fiyatları görün</li>
+              <li>2 yıllık en yüksek, en düşük ve toplam değişim verilerine bakın</li>
+              <li>BIST hisseleri için sembolün sonuna <strong>.IS</strong> ekleyin</li>
+            </ul>
+          </div>
+          <div class="glass-card">
+            <h3 style="font-size:0.95rem;font-weight:700;margin-bottom:10px;"><i class="fas fa-database" style="color:#818cf8;margin-right:6px;"></i>Veri Kaynağı</h3>
+            <ul style="color:var(--text-sec);font-size:0.82rem;line-height:2;padding-left:16px;margin:0;">
+              <li>Veriler <strong>Yahoo Finance (yfinance)</strong> API'den çekilir</li>
+              <li>Haftalık kapanış fiyatları gösterilir</li>
+              <li>ABD hisseleri, BIST, kripto, emtia ve döviz desteklenir</li>
+              <li>Veriler gerçek zamanlıdır, piyasa saatlerine bağlıdır</li>
+            </ul>
           </div>
         </div>
 
@@ -819,6 +920,19 @@
                 <p style="color:var(--text-muted);font-size:0.82rem;line-height:1.6;margin-top:4px;">Kripto paralar,
                   hisse senetleri ve halka arz projelerinin geçmiş performansını, piyasa duyarlılığını ve balon riskini
                   yapay zeka ile analiz eder. Risk skoru, trend analizi ve kapsamlı yatırım raporu sunar.</p>
+              </div>
+            </div>
+            <div
+              style="display:flex;gap:16px;align-items:flex-start;background:rgba(99,102,241,0.06);border:1px solid rgba(99,102,241,0.15);border-radius:14px;padding:18px;">
+              <div
+                style="min-width:44px;height:44px;border-radius:12px;background:rgba(99,102,241,0.15);display:flex;align-items:center;justify-content:center;color:#818cf8;font-size:1.1rem;">
+                <i class="fas fa-chart-area"></i>
+              </div>
+              <div>
+                <strong style="font-size:0.95rem;">Grafik Analiz</strong>
+                <p style="color:var(--text-muted);font-size:0.82rem;line-height:1.6;margin-top:4px;">Hisse senetleri,
+                  kripto paralar, emtia ve döviz varlıklarının son 2 yıllık fiyat performansını interaktif grafiklerle
+                  inceleyin. ABD borsaları, BIST hisseleri ve 100'den fazla varlık için detaylı teknik istatistikler sunar.</p>
               </div>
             </div>
           </div>

@@ -224,6 +224,8 @@ async function hisseGrafikYukle() {
   document.getElementById('hisse-grafik-loading').style.display = 'block';
   document.getElementById('hisse-grafik-sonuc').style.display = 'none';
   document.getElementById('hisse-grafik-error').style.display = 'none';
+  var bosEl = document.getElementById('hisse-grafik-bos');
+  if (bosEl) bosEl.style.display = 'none';
   try {
     var res = await fetch(API_BASE + '/api/prices/history/' + encodeURIComponent(sym));
     var data = await res.json();

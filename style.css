@@ -701,19 +701,31 @@ body {
 }
 
 /* ===== HİSSE GRAFİK ===== */
-.hisse-grafik-search { margin-bottom:16px; }
-.hisse-quick-btns {
-  display:flex; flex-wrap:wrap; gap:6px;
+.grafik-kategori-grid {
+  display:grid; grid-template-columns:repeat(4,1fr); gap:10px;
 }
-.hisse-quick-btns button {
-  padding:6px 14px; border:1px solid var(--border); border-radius:20px;
-  background:rgba(255,255,255,0.03); color:var(--text-sec);
-  font-size:0.78rem; font-weight:500; cursor:pointer;
+.grafik-kat-btn {
+  display:flex; flex-direction:column; align-items:center; gap:4px;
+  padding:16px 8px; border:1px solid var(--border); border-radius:14px;
+  background:rgba(255,255,255,0.02); cursor:pointer;
   font-family:inherit; transition:all var(--transition);
 }
-.hisse-quick-btns button:hover {
-  border-color:var(--accent); color:var(--accent); background:rgba(201,168,76,0.06);
+.grafik-kat-btn:hover {
+  border-color:#818cf8; background:rgba(99,102,241,0.08);
+  transform:translateY(-2px); box-shadow:0 4px 16px rgba(99,102,241,0.15);
 }
+.grafik-kat-btn .gk-icon { font-size:1.5rem; }
+.grafik-kat-btn .gk-name { font-size:0.82rem; font-weight:600; color:var(--text); }
+.grafik-kat-btn .gk-sym { font-size:0.68rem; color:var(--text-muted); }
+
+@media(max-width:600px) {
+  .grafik-kategori-grid { grid-template-columns:repeat(2,1fr); }
+}
+@media(min-width:601px) and (max-width:900px) {
+  .grafik-kategori-grid { grid-template-columns:repeat(3,1fr); }
+}
+
+.hisse-grafik-search { margin-bottom:16px; }
 .hisse-grafik-header {
   display:flex; justify-content:space-between; align-items:center;
   padding-bottom:16px; border-bottom:1px solid var(--border);
