@@ -62,53 +62,7 @@ Ek olarak **Canlı Piyasa Verileri** modülü ile kripto, hisse, altın, döviz 
 
 ---
 
-## 🛠️ Kurulum & Çalıştırma
 
-### Gereksinimler
-- Python 3.10+
-- Node.js (Firebase CLI için)
-- Firebase hesabı
-- Gemini API Key
-- Groq API Key
-
-### Backend (Lokal)
-
-```bash
-# Bağımlılıkları yükle
-pip install -r requirements.txt
-
-# Ortam değişkenlerini ayarla
-set GEMINI_API_KEY=your_key_here
-set GROQ_API_KEY=your_key_here
-
-# Sunucuyu başlat
-uvicorn main:app --reload --port 8000
-```
-
-### Frontend (Lokal)
-
-```bash
-# Firebase CLI yükle
-npm install -g firebase-tools
-
-# Giriş yap
-firebase login
-
-# Lokal sunucu
-firebase serve
-```
-
-### Deploy
-
-```bash
-# Frontend deploy
-firebase deploy --only hosting
-
-# Backend deploy (Render - otomatik GitHub entegrasyonu)
-git push origin main
-```
-
----
 
 ## 📁 Proje Yapısı
 
@@ -125,10 +79,6 @@ YatirimAnaliz/
 ├── favicon.svg         # Site ikonu
 └── README.md           # Bu dosya
 ```
-
----
-
-
 
 ---
 
