@@ -128,11 +128,7 @@ YatirimAnaliz/
 
 ---
 
-## 🌐 Canlı Linkler
 
-- **Platform:** https://yatirim-analiz-60958.web.app
-- **Backend API:** https://yatirimanalizapi.onrender.com
-- **API Docs:** https://yatirimanalizapi.onrender.com/docs
 
 ---
 
