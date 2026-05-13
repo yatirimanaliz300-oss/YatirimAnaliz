@@ -1,0 +1,9 @@
+google-genai
+groq
+fastapi
+uvicorn
+python-multipart
+httpx
+slowapi
+pydantic
+yfinance
