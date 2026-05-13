@@ -8,7 +8,7 @@
   <meta name="description"
     content="Yapay zeka destekli yatırım analizi, piyasa taraması ve risk değerlendirme platformu.">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  <link rel="stylesheet" href="style.css?v=8">
+  <link rel="stylesheet" href="style.css?v=10">
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
 </head>
 
@@ -284,18 +284,27 @@
           <div class="card-arrow"><i class="fas fa-arrow-right"></i></div>
         </div>
 
-        <!-- Grafik Analiz -->
-        <div class="bento-card glow-border" onclick="gitSayfa('grafik-analiz')">
-          <div class="bento-card-glow"></div>
-          <div class="bento-icon" style="background:rgba(99,102,241,0.12);color:#818cf8;"><i class="fas fa-chart-area"></i></div>
-          <h3>Grafik Analiz</h3>
-          <p>Hisse, kripto, emtia ve döviz varlıklarının son 2 yıllık fiyat grafiğini inceleyin. Detaylı teknik veriler ve istatistikler.</p>
-          <div class="bento-features">
-            <span><i class="fas fa-check"></i> 2 Yıl Grafik</span>
-            <span><i class="fas fa-check"></i> Teknik İstatistik</span>
-            <span><i class="fas fa-check"></i> 100+ Varlık</span>
+        <!-- Grafik Analiz (FULL WIDTH) -->
+        <div class="bento-card full" onclick="gitSayfa('grafik-analiz')">
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">
+            <div style="display:flex;align-items:center;gap:16px;">
+              <div class="bento-icon" style="background:rgba(99,102,241,0.12);color:#818cf8;"><i class="fas fa-chart-area"></i></div>
+              <div>
+                <h3 style="margin-bottom:4px;">Grafik Analiz</h3>
+                <p>Hisse, kripto, emtia ve döviz varlıklarının son 2 yıllık fiyat grafiğini interaktif olarak inceleyin</p>
+              </div>
+            </div>
+            <div class="bento-badge" style="background:rgba(99,102,241,0.12);color:#818cf8;"><i class="fas fa-chart-area"></i> Yeni</div>
           </div>
-          <div class="bento-badge" style="background:rgba(99,102,241,0.12);color:#818cf8;"><i class="fas fa-chart-area"></i> Yeni</div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:16px;">
+            <span style="padding:6px 14px;border-radius:20px;background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.2);color:#a5b4fc;font-size:0.78rem;font-weight:500;">🍎 Apple</span>
+            <span style="padding:6px 14px;border-radius:20px;background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.2);color:#a5b4fc;font-size:0.78rem;font-weight:500;">🟢 NVIDIA</span>
+            <span style="padding:6px 14px;border-radius:20px;background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.2);color:#a5b4fc;font-size:0.78rem;font-weight:500;">✈️ THY</span>
+            <span style="padding:6px 14px;border-radius:20px;background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.2);color:#a5b4fc;font-size:0.78rem;font-weight:500;">₿ Bitcoin</span>
+            <span style="padding:6px 14px;border-radius:20px;background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.2);color:#a5b4fc;font-size:0.78rem;font-weight:500;">🥇 Altın</span>
+            <span style="padding:6px 14px;border-radius:20px;background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.2);color:#a5b4fc;font-size:0.78rem;font-weight:500;">💵 USD/TRY</span>
+            <span style="padding:6px 14px;border-radius:20px;background:rgba(255,255,255,0.04);border:1px solid var(--border);color:var(--text-muted);font-size:0.78rem;font-weight:500;">+100 varlık →</span>
+          </div>
           <div class="card-arrow"><i class="fas fa-arrow-right"></i></div>
         </div>
 
@@ -1130,7 +1139,7 @@
       measurementId: "G-SXK5L5TDPD"
     });
   </script>
-  <script src="script.js?v=8"></script>
+  <script src="script.js?v=10"></script>
 </body>
 
 </html>
