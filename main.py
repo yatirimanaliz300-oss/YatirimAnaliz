@@ -513,16 +513,26 @@ async def get_price_history(symbol: str):
         try:
             t = yfinance.Ticker(sym)
             df = t.history(period="2y", interval="1wk")
-            if df.empty:
-                return None
+            if df is None or df.empty:
+                # Fallback: günlük veri dene
+                df = t.history(period="2y")
+            if df is None or df.empty:
+                return {"error": f"{sym} için veri bulunamadı. Sembolü kontrol edin."}
             dates = [d.strftime("%Y-%m-%d") for d in df.index]
             closes = [round(float(c), 2) for c in df["Close"]]
             volumes = [int(v) for v in df["Volume"]]
-            info = t.info or {}
+            name = sym
+            currency = "USD"
+            try:
+                info = t.info or {}
+                name = info.get("shortName", sym)
+                currency = info.get("currency", "USD")
+            except:
+                pass
             return {
                 "symbol": sym,
-                "name": info.get("shortName", sym),
-                "currency": info.get("currency", "USD"),
+                "name": name,
+                "currency": currency,
                 "dates": dates,
                 "closes": closes,
                 "volumes": volumes,
@@ -532,8 +542,7 @@ async def get_price_history(symbol: str):
                 "change_pct": round(((closes[-1] - closes[0]) / closes[0]) * 100, 2) if len(closes) > 1 and closes[0] else 0
             }
         except Exception as e:
-            print(f"[WARN] history {sym}: {e}")
-            return None
+            return {"error": f"Veri hatası: {str(e)[:200]}"}
     loop = asyncio.get_running_loop()
     result = await loop.run_in_executor(None, functools.partial(_fetch_history, symbol.upper()))
     if not result:
