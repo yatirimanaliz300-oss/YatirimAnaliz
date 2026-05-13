@@ -186,11 +186,32 @@ def _enrich(raw: dict, atype: str, target: str) -> AnalysisResult:
         risk_level=level, risk_color=color
     )
 
+TRUSTED_DOMAINS = {
+    "yatirim-analiz-60958.web.app", "yatirim-analiz-60958.firebaseapp.com",
+    "yatirimanalizapi.onrender.com",
+    "google.com", "youtube.com", "facebook.com", "instagram.com", "twitter.com", "x.com",
+    "linkedin.com", "github.com", "microsoft.com", "apple.com", "amazon.com",
+    "wikipedia.org", "reddit.com", "netflix.com", "whatsapp.com",
+    "borsaistanbul.com", "tcmb.gov.tr", "spk.gov.tr", "isbank.com.tr",
+    "garanti.com.tr", "akbank.com", "yapikredi.com.tr", "qnb.com.tr",
+    "firebase.google.com", "web.app", "firebaseapp.com",
+}
+
 def _static_url(url: str) -> tuple:
     findings, bonus = [], 0
     try:
         p = urlparse(url)
         domain = (p.netloc or "").lower().removeprefix("www.")
+        # Güvenilir domain kontrolü
+        is_trusted = False
+        for td in TRUSTED_DOMAINS:
+            if domain == td or domain.endswith("." + td):
+                is_trusted = True
+                break
+        if is_trusted:
+            findings.append("Alan adı güvenilir yapısı doğrulanmış.")
+            bonus -= 40
+            return findings, max(bonus, -40)
         if url.startswith("http://"):
             findings.append("HTTP protokolü — şifrelenmemiş.")
             bonus += 15
@@ -237,6 +258,8 @@ Sadece JSON dön:
   "action_plan": ["eylem 1", "eylem 2", "eylem 3"]
 }}"""
     raw = await run_ai(prompt) or {"score": 50, "reasons": ["AI Hatası"], "explanation": "Yapay zekaya ulaşılamadı.", "site_purpose": "Belirlenemedi", "ai_comment": ""}
+    # Güvenilir domain bonus'unu AI skoruna uygula
+    raw["score"] = max(0, min(100, int(raw.get("score", 50)) + bonus))
     res = _enrich(raw, "link", data.url)
     res.site_purpose = raw.get("site_purpose", "Belirlenemedi")
     res.ai_comment = raw.get("ai_comment", "")
