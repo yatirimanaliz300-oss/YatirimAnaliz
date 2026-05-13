@@ -4,11 +4,17 @@
     "ignore": [
       "firebase.json",
       ".firebaserc",
+      ".git/**",
+      ".git",
+      ".gitignore",
       "main.py",
       "baslat.bat",
+      "Procfile",
+      "requirements.txt",
       "__pycache__",
-      "*.pyc",
-      "node_modules"
+      "**/*.pyc",
+      "node_modules",
+      "firebase-debug.log"
     ],
     "rewrites": [
       {

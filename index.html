@@ -22,42 +22,65 @@
         <h1>Yatırım Radar</h1>
         <p>AI Destekli Finansal Analiz Platformu</p>
       </div>
-      <form id="login-form" onsubmit="girisYap(event)">
+
+      <!-- Sekme Butonları -->
+      <div class="auth-tabs">
+        <button class="auth-tab active" onclick="authSekme('giris')">Giriş Yap</button>
+        <button class="auth-tab" onclick="authSekme('kayit')">Kayıt Ol</button>
+      </div>
+
+      <!-- Hata/Başarı Mesajı -->
+      <div id="auth-mesaj" class="auth-mesaj" style="display:none;"></div>
+
+      <!-- GİRİŞ FORMU -->
+      <form id="giris-form" onsubmit="emailGiris(event)">
         <div class="login-field">
-          <label>Ad Soyad</label>
-          <input type="text" id="login-name" placeholder="Adınızı girin" required minlength="2">
+          <label><i class="fas fa-envelope"></i> E-posta</label>
+          <input type="email" id="giris-email" placeholder="ornek@mail.com" required>
         </div>
         <div class="login-field">
-          <label>E-posta</label>
-          <input type="email" id="login-email" placeholder="ornek@mail.com" required>
+          <label><i class="fas fa-lock"></i> Şifre</label>
+          <input type="password" id="giris-password" placeholder="Şifrenizi girin" required minlength="6">
         </div>
-        <div class="login-field">
-          <label>Şifre</label>
-          <input type="password" id="login-password" placeholder="Şifrenizi girin" required minlength="4">
-        </div>
-        <button type="submit" class="login-btn"><i class="fas fa-arrow-right"></i> Giriş Yap</button>
+        <button type="submit" class="login-btn" id="giris-btn"><i class="fas fa-arrow-right"></i> Giriş Yap</button>
       </form>
+
+      <!-- KAYIT FORMU -->
+      <form id="kayit-form" onsubmit="emailKayit(event)" style="display:none;">
+        <div class="login-field">
+          <label><i class="fas fa-user"></i> Ad Soyad</label>
+          <input type="text" id="kayit-name" placeholder="Adınızı girin" required minlength="2">
+        </div>
+        <div class="login-field">
+          <label><i class="fas fa-envelope"></i> E-posta</label>
+          <input type="email" id="kayit-email" placeholder="ornek@mail.com" required>
+        </div>
+        <div class="login-field">
+          <label><i class="fas fa-lock"></i> Şifre</label>
+          <input type="password" id="kayit-password" placeholder="En az 6 karakter" required minlength="6">
+        </div>
+        <div class="login-field">
+          <label><i class="fas fa-lock"></i> Şifre Tekrar</label>
+          <input type="password" id="kayit-password2" placeholder="Şifrenizi tekrar girin" required minlength="6">
+        </div>
+        <button type="submit" class="login-btn" id="kayit-btn"><i class="fas fa-user-plus"></i> Kayıt Ol</button>
+      </form>
+
       <div class="login-divider"><span>veya</span></div>
+
+      <!-- Google Giriş -->
       <button class="login-btn google-btn" onclick="googleGiris()">
         <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
         Google ile Giriş Yap
       </button>
+
       <div class="login-divider"><span>veya</span></div>
-      <!-- Misafir: buton + gizli ad formu -->
-      <div id="misafir-area">
-        <button class="login-btn guest-btn" onclick="misafirTikla()" id="misafir-btn">
-          <i class="fas fa-user-secret"></i> Misafir Olarak Devam Et
-        </button>
-        <div id="misafir-form" style="display:none; margin-top:12px;">
-          <div class="login-field" style="margin-bottom:10px;">
-            <label>Adınızı Girin</label>
-            <input type="text" id="misafir-name" placeholder="Ad Soyad" minlength="2">
-          </div>
-          <button class="login-btn guest-btn" onclick="misafirKaydet()" style="margin-top:0;">
-            <i class="fas fa-check"></i> Misafir Girişi Tamamla
-          </button>
-        </div>
-      </div>
+
+      <!-- Misafir -->
+      <button class="login-btn guest-btn" onclick="misafirGirisYap()">
+        <i class="fas fa-user-secret"></i> Misafir Olarak Devam Et
+      </button>
+
       <p class="login-footer">Giriş yaparak <a href="#" onclick="event.preventDefault()">kullanım şartlarını</a> kabul
         etmiş olursunuz.</p>
     </div>
@@ -914,7 +937,21 @@
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-  <script src="script.js?v=6"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <script>
+    firebase.initializeApp({
+      apiKey: "AIzaSyCyMU6y6RwjIbJsFVlaQkQdQ81CX_7wuqU",
+      authDomain: "yatirim-analiz-60958.firebaseapp.com",
+      projectId: "yatirim-analiz-60958",
+      storageBucket: "yatirim-analiz-60958.firebasestorage.app",
+      messagingSenderId: "756187994244",
+      appId: "1:756187994244:web:3cc78c1081e615649f0ad1",
+      measurementId: "G-SXK5L5TDPD"
+    });
+  </script>
+  <script src="script.js?v=7"></script>
 </body>
 
 </html>

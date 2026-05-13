@@ -700,6 +700,30 @@ body {
   color:#0a0f1e; box-shadow:var(--shadow-gold);
 }
 
+/* ===== AUTH TABS ===== */
+.auth-tabs {
+  display:flex; gap:4px; margin-bottom:18px;
+  background:rgba(255,255,255,0.04); border-radius:12px; padding:4px;
+}
+.auth-tab {
+  flex:1; padding:10px; border:none; border-radius:10px;
+  background:transparent; color:var(--text-muted);
+  font-weight:600; font-size:0.88rem; cursor:pointer;
+  font-family:inherit; transition:all var(--transition);
+}
+.auth-tab.active {
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  color:#0a0f1e; box-shadow:0 2px 12px rgba(201,168,76,0.2);
+}
+.auth-tab:not(.active):hover { color:var(--text); background:rgba(255,255,255,0.06); }
+
+.auth-mesaj {
+  padding:10px 14px; border-radius:10px; font-size:0.82rem;
+  margin-bottom:14px; text-align:center; font-weight:500;
+}
+.auth-mesaj.hata { background:rgba(239,68,68,0.12); color:#f87171; border:1px solid rgba(239,68,68,0.2); }
+.auth-mesaj.basari { background:rgba(16,185,129,0.12); color:#34d399; border:1px solid rgba(16,185,129,0.2); }
+
 /* ===== GOOGLE LOGIN BTN ===== */
 .google-btn {
   background:#fff !important; color:#333 !important; font-weight:600;

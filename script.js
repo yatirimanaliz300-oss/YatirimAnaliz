@@ -1,5 +1,7 @@
 'use strict';
-const API_BASE = 'http://127.0.0.1:8000';
+const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+  ? 'http://127.0.0.1:8000'
+  : 'https://yatirimanalizapi.onrender.com';
 
 // ===== TAB SLIDER NAVİGASYON =====
 function tabGit(type, idx) {
@@ -29,133 +31,170 @@ function tabNav(type, dir) {
   tabGit(type, next);
 }
 
-// ===== AUTH (localStorage) =====
-function oturumKontrol() {
-  const user = JSON.parse(localStorage.getItem('yr_user') || 'null');
-  if (user) {
-    document.getElementById('login-overlay')?.classList.add('gizli');
-    document.getElementById('profile-name').textContent = user.name;
-    const initials = user.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0,2);
-    document.getElementById('avatar-text').textContent = initials || 'YR';
-    // Hero kişisel selamlama
-    const hour = new Date().getHours();
-    const selamlama = hour < 12 ? 'Günaydın' : hour < 18 ? 'İyi Günler' : 'İyi Akşamlar';
-    const hg = document.getElementById('hero-greeting');
-    if (hg) hg.textContent = selamlama + ', ' + user.name.split(' ')[0] + '!';
-    // Profil sayfası bilgilerini güncelle
-    const pi = document.getElementById('profil-isim');
-    if (pi) pi.textContent = user.name;
-    const pi2 = document.getElementById('profil-isim2');
-    if (pi2) pi2.textContent = user.name;
-    const pe = document.getElementById('profil-email');
-    if (pe) pe.textContent = user.email || (user.type === 'misafir' ? 'Misafir Hesap' : '-');
-    const pe2 = document.getElementById('profil-email2');
-    if (pe2) pe2.textContent = user.email || (user.type === 'misafir' ? 'Misafir Hesap' : '-');
-    const pa = document.getElementById('profil-avatar');
-    if (pa) pa.textContent = initials || 'YR';
-    const pt = document.getElementById('profil-tarih');
-    const regDate = user.registered || new Date().toISOString();
-    if (!user.registered) { user.registered = regDate; localStorage.setItem('yr_user', JSON.stringify(user)); }
-    if (pt) pt.textContent = new Date(regDate).toLocaleDateString('tr-TR');
-    // Kaç gün üye
-    const daysSince = Math.max(1, Math.floor((Date.now() - new Date(regDate).getTime()) / 86400000));
-    const gunEl = document.getElementById('profil-stat-gun');
-    if (gunEl) gunEl.textContent = daysSince;
-    // Analiz sayısı
-    const analizCount = parseInt(localStorage.getItem('yr_analiz_count') || '0');
-    const analizEl = document.getElementById('profil-stat-analiz');
-    if (analizEl) analizEl.textContent = analizCount;
+// ===== AUTH (Firebase) =====
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+// Auth mesajlarını göster
+function authMesaj(msg, tip) {
+  var el = document.getElementById('auth-mesaj');
+  if (!el) return;
+  el.textContent = msg;
+  el.className = 'auth-mesaj ' + (tip || 'hata');
+  el.style.display = 'block';
+  if (tip === 'basari') setTimeout(function(){ el.style.display='none'; }, 3000);
+}
+
+// Sekme değiştir
+function authSekme(tab) {
+  document.querySelectorAll('.auth-tab').forEach(function(t) { t.classList.remove('active'); });
+  document.getElementById('auth-mesaj').style.display = 'none';
+  if (tab === 'giris') {
+    document.querySelectorAll('.auth-tab')[0].classList.add('active');
+    document.getElementById('giris-form').style.display = '';
+    document.getElementById('kayit-form').style.display = 'none';
   } else {
-    document.getElementById('login-overlay')?.classList.remove('gizli');
+    document.querySelectorAll('.auth-tab')[1].classList.add('active');
+    document.getElementById('giris-form').style.display = 'none';
+    document.getElementById('kayit-form').style.display = '';
   }
 }
 
-function girisYap(e) {
-  e.preventDefault();
-  const name = document.getElementById('login-name').value.trim();
-  const email = document.getElementById('login-email').value.trim();
-  const pass = document.getElementById('login-password').value;
-  if (!name || !email || !pass) return;
-  localStorage.setItem('yr_user', JSON.stringify({ name, email, type: 'uye' }));
-  oturumKontrol();
+// Kullanıcı bilgilerini Firestore'a kaydet
+async function kullaniciyiKaydet(user, name) {
+  try {
+    await db.collection('users').doc(user.uid).set({
+      name: name || user.displayName || 'Kullanıcı',
+      email: user.email || '',
+      type: user.isAnonymous ? 'misafir' : (user.providerData[0]?.providerId === 'google.com' ? 'google' : 'email'),
+      registered: firebase.firestore.FieldValue.serverTimestamp(),
+      lastLogin: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+  } catch(e) { console.warn('Firestore kayıt hatası:', e); }
 }
 
-// Google ile Giriş (simüle - Google Identity Services)
-function googleGiris() {
-  // Google OAuth popup simülasyonu
-  var w = 500, h = 600;
-  var left = (screen.width - w) / 2, top = (screen.height - h) / 2;
-  var popup = window.open(
-    'https://accounts.google.com/o/oauth2/v2/auth?client_id=demo&redirect_uri=' + encodeURIComponent(window.location.origin) + '&response_type=token&scope=email%20profile&prompt=select_account',
-    'google_login',
-    'width='+w+',height='+h+',left='+left+',top='+top
-  );
-  // Popup engellenirse veya kapanırsa fallback
-  setTimeout(function() {
-    if (!popup || popup.closed) {
-      // Fallback: kullanıcıdan bilgi al
-      var name = prompt('Google hesap adınızı girin:');
-      if (name && name.trim()) {
-        var email = prompt('Google e-posta adresinizi girin:') || (name.trim().toLowerCase().replace(/\s/g,'.') + '@gmail.com');
-        localStorage.setItem('yr_user', JSON.stringify({ name: name.trim(), email: email, type: 'google', registered: new Date().toISOString() }));
-        location.reload();
-      }
+// Profil bilgilerini güncelle
+async function profilGuncelle(user) {
+  if (!user) { document.getElementById('login-overlay')?.classList.remove('gizli'); return; }
+  document.getElementById('login-overlay')?.classList.add('gizli');
+
+  var name = user.displayName || 'Kullanıcı';
+  var email = user.email || (user.isAnonymous ? 'Misafir Hesap' : '-');
+
+  // Firestore'dan ek bilgi çek
+  try {
+    var doc = await db.collection('users').doc(user.uid).get();
+    if (doc.exists) {
+      var d = doc.data();
+      if (d.name) name = d.name;
     }
-  }, 2000);
-  // Popup'tan dönüş kontrolü
-  var checker = setInterval(function() {
-    try {
-      if (popup && popup.closed) {
-        clearInterval(checker);
-        // Popup kapandıysa ve henüz giriş yapılmadıysa
-        var u = JSON.parse(localStorage.getItem('yr_user') || 'null');
-        if (!u) {
-          var name = prompt('Google hesap adınızı girin:');
-          if (name && name.trim()) {
-            var email = prompt('Google e-posta adresinizi girin:') || (name.trim().toLowerCase().replace(/\s/g,'.') + '@gmail.com');
-            localStorage.setItem('yr_user', JSON.stringify({ name: name.trim(), email: email, type: 'google', registered: new Date().toISOString() }));
-            location.reload();
-          }
-        }
-      }
-    } catch(e) { clearInterval(checker); }
-  }, 1000);
+  } catch(e) {}
+
+  var initials = name.split(' ').map(function(w){ return w[0]; }).join('').toUpperCase().slice(0,2);
+  document.getElementById('profile-name').textContent = name;
+  document.getElementById('avatar-text').textContent = initials || 'YR';
+
+  var hour = new Date().getHours();
+  var selamlama = hour < 12 ? 'Günaydın' : hour < 18 ? 'İyi Günler' : 'İyi Akşamlar';
+  var hg = document.getElementById('hero-greeting');
+  if (hg) hg.textContent = selamlama + ', ' + name.split(' ')[0] + '!';
+
+  var pi = document.getElementById('profil-isim'); if(pi) pi.textContent = name;
+  var pi2 = document.getElementById('profil-isim2'); if(pi2) pi2.textContent = name;
+  var pe = document.getElementById('profil-email'); if(pe) pe.textContent = email;
+  var pe2 = document.getElementById('profil-email2'); if(pe2) pe2.textContent = email;
+  var pa = document.getElementById('profil-avatar'); if(pa) pa.textContent = initials || 'YR';
+  var pt = document.getElementById('profil-tarih');
+  var regDate = user.metadata?.creationTime || new Date().toISOString();
+  if(pt) pt.textContent = new Date(regDate).toLocaleDateString('tr-TR');
+  var daysSince = Math.max(1, Math.floor((Date.now() - new Date(regDate).getTime()) / 86400000));
+  var gunEl = document.getElementById('profil-stat-gun'); if(gunEl) gunEl.textContent = daysSince;
+  var analizCount = parseInt(localStorage.getItem('yr_analiz_count') || '0');
+  var analizEl = document.getElementById('profil-stat-analiz'); if(analizEl) analizEl.textContent = analizCount;
 }
 
-// Misafir: ilk tıklama → kayıtlı mı kontrol et
-function misafirTikla() {
-  const guest = JSON.parse(localStorage.getItem('yr_guest_profile') || 'null');
-  if (guest) {
-    // Daha önce kayıt olmuş, direkt giriş yap
-    localStorage.setItem('yr_user', JSON.stringify({ name: guest.name, email: 'misafir', type: 'misafir' }));
-    oturumKontrol();
-  } else {
-    // İlk kez: ad soyad formunu göster
-    document.getElementById('misafir-btn').style.display = 'none';
-    document.getElementById('misafir-form').style.display = 'block';
-    document.getElementById('misafir-name').focus();
+// Firebase auth durumu izle
+auth.onAuthStateChanged(function(user) { profilGuncelle(user); });
+
+function oturumKontrol() { profilGuncelle(auth.currentUser); }
+
+// E-posta ile Kayıt
+async function emailKayit(e) {
+  e.preventDefault();
+  var name = document.getElementById('kayit-name').value.trim();
+  var email = document.getElementById('kayit-email').value.trim();
+  var pass = document.getElementById('kayit-password').value;
+  var pass2 = document.getElementById('kayit-password2').value;
+  if (pass !== pass2) { authMesaj('Şifreler eşleşmiyor!', 'hata'); return; }
+  if (pass.length < 6) { authMesaj('Şifre en az 6 karakter olmalı!', 'hata'); return; }
+
+  var btn = document.getElementById('kayit-btn');
+  btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Kayıt olunuyor...';
+  try {
+    var cred = await auth.createUserWithEmailAndPassword(email, pass);
+    await cred.user.updateProfile({ displayName: name });
+    await kullaniciyiKaydet(cred.user, name);
+    authMesaj('Kayıt başarılı! Hoş geldiniz.', 'basari');
+  } catch(err) {
+    var msg = 'Bir hata oluştu.';
+    if (err.code === 'auth/email-already-in-use') msg = 'Bu e-posta zaten kayıtlı!';
+    else if (err.code === 'auth/weak-password') msg = 'Şifre çok zayıf!';
+    else if (err.code === 'auth/invalid-email') msg = 'Geçersiz e-posta adresi!';
+    authMesaj(msg, 'hata');
+  }
+  btn.disabled = false; btn.innerHTML = '<i class="fas fa-user-plus"></i> Kayıt Ol';
+}
+
+// E-posta ile Giriş
+async function emailGiris(e) {
+  e.preventDefault();
+  var email = document.getElementById('giris-email').value.trim();
+  var pass = document.getElementById('giris-password').value;
+
+  var btn = document.getElementById('giris-btn');
+  btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Giriş yapılıyor...';
+  try {
+    var cred = await auth.signInWithEmailAndPassword(email, pass);
+    await db.collection('users').doc(cred.user.uid).set({ lastLogin: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
+  } catch(err) {
+    var msg = 'Giriş başarısız.';
+    if (err.code === 'auth/user-not-found') msg = 'Bu e-posta kayıtlı değil!';
+    else if (err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') msg = 'Şifre yanlış!';
+    else if (err.code === 'auth/invalid-email') msg = 'Geçersiz e-posta!';
+    else if (err.code === 'auth/too-many-requests') msg = 'Çok fazla deneme! Biraz bekleyin.';
+    authMesaj(msg, 'hata');
+  }
+  btn.disabled = false; btn.innerHTML = '<i class="fas fa-arrow-right"></i> Giriş Yap';
+}
+
+// Google ile Giriş (Firebase Auth)
+async function googleGiris() {
+  try {
+    var provider = new firebase.auth.GoogleAuthProvider();
+    var result = await auth.signInWithPopup(provider);
+    await kullaniciyiKaydet(result.user, result.user.displayName);
+  } catch(err) {
+    if (err.code !== 'auth/popup-closed-by-user') {
+      authMesaj('Google giriş hatası: ' + err.message, 'hata');
+    }
   }
 }
 
-// Misafir: adını kaydet ve giriş yap
-function misafirKaydet() {
-  const name = document.getElementById('misafir-name').value.trim();
-  if (!name || name.length < 2) {
-    document.getElementById('misafir-name').focus();
-    return;
+// Misafir Girişi (Firebase Anonymous Auth)
+async function misafirGirisYap() {
+  try {
+    var result = await auth.signInAnonymously();
+    await kullaniciyiKaydet(result.user, 'Misafir');
+  } catch(err) {
+    authMesaj('Misafir giriş hatası.', 'hata');
   }
-  // Cihaza kalıcı olarak kaydet (bir daha ad sormayacak)
-  localStorage.setItem('yr_guest_profile', JSON.stringify({ name }));
-  localStorage.setItem('yr_user', JSON.stringify({ name, email: 'misafir', type: 'misafir' }));
-  oturumKontrol();
 }
 
-function cikisYap(e) {
+// Çıkış
+async function cikisYap(e) {
   if (e) e.preventDefault();
-  localStorage.removeItem('yr_user');
+  try { await auth.signOut(); } catch(err) {}
   document.getElementById('profile-dropdown')?.classList.remove('acik');
-  oturumKontrol();
-  misafirBtnGuncelle();
 }
 
 function toggleProfileMenu() {
@@ -171,27 +210,9 @@ document.addEventListener('click', (e) => {
   }
 });
 
-function misafirBtnGuncelle() {
-  const btn = document.getElementById('misafir-btn');
-  const form = document.getElementById('misafir-form');
-  if (!btn) return;
-  const guest = JSON.parse(localStorage.getItem('yr_guest_profile') || 'null');
-  if (guest) {
-    // Kayıtlı misafir var → butonu "Hoş geldin X" olarak güncelle
-    btn.style.display = 'flex';
-    btn.innerHTML = '<i class="fas fa-user-check"></i> ' + guest.name + ' olarak giriş yap';
-    if (form) form.style.display = 'none';
-  } else {
-    btn.style.display = 'flex';
-    btn.innerHTML = '<i class="fas fa-user-secret"></i> Misafir Olarak Devam Et';
-    if (form) form.style.display = 'none';
-  }
-}
-
 // Sayfa yüklenince oturum kontrol
 document.addEventListener('DOMContentLoaded', () => {
   oturumKontrol();
-  misafirBtnGuncelle();
 });
 
 function gitSayfa(page, e) {
