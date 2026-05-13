@@ -511,7 +511,7 @@ async def get_price_history(symbol: str):
     """Son 2 yıllık haftalık fiyat geçmişi döner"""
     def _fetch_history(sym):
         try:
-            t = yfinance.Ticker(sym)
+            t = yf.Ticker(sym)
             df = t.history(period="2y", interval="1wk")
             if df is None or df.empty:
                 # Fallback: günlük veri dene
