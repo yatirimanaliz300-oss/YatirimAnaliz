@@ -8,7 +8,7 @@
   <meta name="description"
     content="Yapay zeka destekli yatırım analizi, piyasa taraması ve risk değerlendirme platformu.">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  <link rel="stylesheet" href="style.css?v=10">
+  <link rel="stylesheet" href="style.css?v=11">
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
 </head>
 
@@ -466,6 +466,16 @@
         <p>Hisse, kripto, emtia ve döviz varlıklarının son 2 yıllık fiyat performansını detaylı inceleyin.</p>
       </div>
       <div style="max-width:1100px;">
+
+        <!-- Para Birimi Seçici -->
+        <div class="currency-toggle" id="grafik-currency-toggle">
+          <button class="cur-btn active" data-cur="usd" onclick="grafikCurrency('usd')">
+            <i class="fas fa-dollar-sign"></i> USD
+          </button>
+          <button class="cur-btn" data-cur="try" onclick="grafikCurrency('try')">
+            <i class="fas fa-lira-sign"></i> TRY
+          </button>
+        </div>
 
         <!-- Arama -->
         <div class="glass-card" style="margin-bottom:24px;">
@@ -1139,7 +1149,7 @@
       measurementId: "G-SXK5L5TDPD"
     });
   </script>
-  <script src="script.js?v=10"></script>
+  <script src="script.js?v=11"></script>
 </body>
 
 </html>

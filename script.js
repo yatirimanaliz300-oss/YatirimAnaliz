@@ -212,6 +212,34 @@ document.addEventListener('click', (e) => {
 
 // ===== HİSSE GRAFİĞİ =====
 var _hisseChart = null;
+var _grafikCur = 'usd';
+var _grafikLastData = null;
+var _grafikUsdTry = null;
+
+async function grafikCurrency(cur) {
+  _grafikCur = cur;
+  document.querySelectorAll('#grafik-currency-toggle .cur-btn').forEach(function(b) {
+    b.classList.toggle('active', b.dataset.cur === cur);
+  });
+  if (_grafikLastData) {
+    await _getUsdTry();
+    hisseGrafikCiz(_grafikLastData);
+  }
+}
+
+async function _getUsdTry() {
+  if (_grafikUsdTry) return _grafikUsdTry;
+  try {
+    var r = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
+    var d = await r.json();
+    if (d && d.rates && d.rates.TRY) {
+      _grafikUsdTry = d.rates.TRY;
+      return _grafikUsdTry;
+    }
+  } catch(e) {}
+  _grafikUsdTry = 38;
+  return _grafikUsdTry;
+}
 
 function hisseGrafikSec(symbol) {
   document.getElementById('hisse-grafik-input').value = symbol;
@@ -235,6 +263,8 @@ async function hisseGrafikYukle() {
       document.getElementById('hisse-grafik-loading').style.display = 'none';
       return;
     }
+    _grafikLastData = data;
+    await _getUsdTry();
     hisseGrafikCiz(data);
   } catch(e) {
     document.getElementById('hisse-grafik-error-text').textContent = 'Bağlantı hatası.';
@@ -245,20 +275,32 @@ async function hisseGrafikYukle() {
 
 function hisseGrafikCiz(data) {
   document.getElementById('hisse-grafik-sonuc').style.display = 'block';
+  var origCur = (data.currency || 'USD').toUpperCase();
+  var wantTry = _grafikCur === 'try';
+  var alreadyTry = origCur === 'TRY';
+  var rate = (wantTry && !alreadyTry) ? (_grafikUsdTry || 38) : 1;
+  var displayCur = wantTry ? 'TRY' : origCur;
+  var curSymbol = displayCur === 'TRY' ? '₺' : (displayCur === 'USD' ? '$' : displayCur + ' ');
+
+  var current = data.current * rate;
+  var high = data.high_2y * rate;
+  var low = data.low_2y * rate;
+  var closes = data.closes.map(function(c) { return Math.round(c * rate * 100) / 100; });
+
   document.getElementById('hisse-grafik-title').textContent = data.name || data.symbol;
-  document.getElementById('hisse-grafik-subtitle').textContent = data.symbol + ' · ' + data.currency;
-  document.getElementById('hisse-grafik-price').textContent = data.current.toLocaleString('tr-TR', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' ' + data.currency;
+  document.getElementById('hisse-grafik-subtitle').textContent = data.symbol + ' · ' + displayCur;
+  document.getElementById('hisse-grafik-price').textContent = curSymbol + current.toLocaleString('tr-TR', {minimumFractionDigits:2, maximumFractionDigits:2});
   var chgEl = document.getElementById('hisse-grafik-change');
   var pct = data.change_pct;
   chgEl.textContent = (pct >= 0 ? '+' : '') + pct.toFixed(2) + '% (2 Yıl)';
   chgEl.style.color = pct >= 0 ? 'var(--green)' : 'var(--red)';
 
-  document.getElementById('hg-stat-high').textContent = data.high_2y.toLocaleString('tr-TR', {minimumFractionDigits:2});
-  document.getElementById('hg-stat-low').textContent = data.low_2y.toLocaleString('tr-TR', {minimumFractionDigits:2});
+  document.getElementById('hg-stat-high').textContent = curSymbol + high.toLocaleString('tr-TR', {minimumFractionDigits:2});
+  document.getElementById('hg-stat-low').textContent = curSymbol + low.toLocaleString('tr-TR', {minimumFractionDigits:2});
   var chgStatEl = document.getElementById('hg-stat-change');
   chgStatEl.textContent = (pct >= 0 ? '+' : '') + pct.toFixed(2) + '%';
   chgStatEl.style.color = pct >= 0 ? 'var(--green)' : 'var(--red)';
-  document.getElementById('hg-stat-currency').textContent = data.currency;
+  document.getElementById('hg-stat-currency').textContent = displayCur;
 
   // Grafik
   if (_hisseChart) _hisseChart.destroy();
@@ -275,7 +317,7 @@ function hisseGrafikCiz(data) {
       labels: labels,
       datasets: [{
         label: data.symbol,
-        data: data.closes,
+        data: closes,
         borderColor: isUp ? '#10b981' : '#ef4444',
         backgroundColor: gradient,
         borderWidth: 2,
@@ -299,7 +341,7 @@ function hisseGrafikCiz(data) {
           borderColor: 'rgba(201,168,76,0.3)',
           borderWidth: 1,
           callbacks: {
-            label: function(ctx) { return ctx.parsed.y.toLocaleString('tr-TR', {minimumFractionDigits:2}) + ' ' + data.currency; }
+            label: function(c) { return curSymbol + c.parsed.y.toLocaleString('tr-TR', {minimumFractionDigits:2}) + ' ' + displayCur; }
           }
         }
       },
