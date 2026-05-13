@@ -58,7 +58,7 @@ Ek olarak **Canlı Piyasa Verileri** modülü ile kripto, hisse, altın, döviz 
 
 ## 📸 Ekran Görüntüleri
 
-> Demo videosu için: *(YouTube linki eklenecek)*
+> Demo videosu için: *(https://youtu.be/SYeEhunpSow)*
 
 ---
 
