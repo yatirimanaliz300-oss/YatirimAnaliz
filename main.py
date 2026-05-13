@@ -506,6 +506,40 @@ async def get_commodity_prices():
         result.append({"symbol": s, "name": names[s], "icon": icons[s], "price_usd": d["price"], "change": d["change"]})
     return result
 
+@app.get("/api/prices/history/{symbol}", tags=["Fiyatlar"])
+async def get_price_history(symbol: str):
+    """Son 2 yıllık haftalık fiyat geçmişi döner"""
+    def _fetch_history(sym):
+        try:
+            t = yfinance.Ticker(sym)
+            df = t.history(period="2y", interval="1wk")
+            if df.empty:
+                return None
+            dates = [d.strftime("%Y-%m-%d") for d in df.index]
+            closes = [round(float(c), 2) for c in df["Close"]]
+            volumes = [int(v) for v in df["Volume"]]
+            info = t.info or {}
+            return {
+                "symbol": sym,
+                "name": info.get("shortName", sym),
+                "currency": info.get("currency", "USD"),
+                "dates": dates,
+                "closes": closes,
+                "volumes": volumes,
+                "current": closes[-1] if closes else 0,
+                "high_2y": max(closes) if closes else 0,
+                "low_2y": min(closes) if closes else 0,
+                "change_pct": round(((closes[-1] - closes[0]) / closes[0]) * 100, 2) if len(closes) > 1 and closes[0] else 0
+            }
+        except Exception as e:
+            print(f"[WARN] history {sym}: {e}")
+            return None
+    loop = asyncio.get_running_loop()
+    result = await loop.run_in_executor(None, functools.partial(_fetch_history, symbol.upper()))
+    if not result:
+        return {"error": "Veri bulunamadı", "symbol": symbol}
+    return result
+
 @app.post("/analyze/market_pulse", tags=["Analiz"])
 @limiter.limit("5/minute")
 async def market_pulse(request: Request):

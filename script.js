@@ -210,6 +210,111 @@ document.addEventListener('click', (e) => {
   }
 });
 
+// ===== HİSSE GRAFİĞİ =====
+var _hisseChart = null;
+
+function hisseGrafikSec(symbol) {
+  document.getElementById('hisse-grafik-input').value = symbol;
+  hisseGrafikYukle();
+}
+
+async function hisseGrafikYukle() {
+  var sym = (document.getElementById('hisse-grafik-input').value || '').trim().toUpperCase();
+  if (!sym) return;
+  document.getElementById('hisse-grafik-loading').style.display = 'block';
+  document.getElementById('hisse-grafik-sonuc').style.display = 'none';
+  document.getElementById('hisse-grafik-error').style.display = 'none';
+  try {
+    var res = await fetch(API_BASE + '/api/prices/history/' + encodeURIComponent(sym));
+    var data = await res.json();
+    if (data.error) {
+      document.getElementById('hisse-grafik-error-text').textContent = data.error;
+      document.getElementById('hisse-grafik-error').style.display = 'block';
+      document.getElementById('hisse-grafik-loading').style.display = 'none';
+      return;
+    }
+    hisseGrafikCiz(data);
+  } catch(e) {
+    document.getElementById('hisse-grafik-error-text').textContent = 'Bağlantı hatası.';
+    document.getElementById('hisse-grafik-error').style.display = 'block';
+  }
+  document.getElementById('hisse-grafik-loading').style.display = 'none';
+}
+
+function hisseGrafikCiz(data) {
+  document.getElementById('hisse-grafik-sonuc').style.display = 'block';
+  document.getElementById('hisse-grafik-title').textContent = data.name || data.symbol;
+  document.getElementById('hisse-grafik-subtitle').textContent = data.symbol + ' · ' + data.currency;
+  document.getElementById('hisse-grafik-price').textContent = data.current.toLocaleString('tr-TR', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' ' + data.currency;
+  var chgEl = document.getElementById('hisse-grafik-change');
+  var pct = data.change_pct;
+  chgEl.textContent = (pct >= 0 ? '+' : '') + pct.toFixed(2) + '% (2 Yıl)';
+  chgEl.style.color = pct >= 0 ? 'var(--green)' : 'var(--red)';
+
+  document.getElementById('hg-stat-high').textContent = data.high_2y.toLocaleString('tr-TR', {minimumFractionDigits:2});
+  document.getElementById('hg-stat-low').textContent = data.low_2y.toLocaleString('tr-TR', {minimumFractionDigits:2});
+  var chgStatEl = document.getElementById('hg-stat-change');
+  chgStatEl.textContent = (pct >= 0 ? '+' : '') + pct.toFixed(2) + '%';
+  chgStatEl.style.color = pct >= 0 ? 'var(--green)' : 'var(--red)';
+  document.getElementById('hg-stat-currency').textContent = data.currency;
+
+  // Grafik
+  if (_hisseChart) _hisseChart.destroy();
+  var ctx = document.getElementById('hisse-grafik-canvas').getContext('2d');
+  var labels = data.dates.map(function(d) { return d.substring(0,7); });
+  var isUp = pct >= 0;
+  var gradient = ctx.createLinearGradient(0, 0, 0, 320);
+  gradient.addColorStop(0, isUp ? 'rgba(16,185,129,0.3)' : 'rgba(239,68,68,0.3)');
+  gradient.addColorStop(1, 'rgba(0,0,0,0)');
+
+  _hisseChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: data.symbol,
+        data: data.closes,
+        borderColor: isUp ? '#10b981' : '#ef4444',
+        backgroundColor: gradient,
+        borderWidth: 2,
+        pointRadius: 0,
+        pointHoverRadius: 5,
+        pointHoverBackgroundColor: isUp ? '#10b981' : '#ef4444',
+        fill: true,
+        tension: 0.3
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: 'rgba(10,15,30,0.9)',
+          titleColor: '#e2e8f0',
+          bodyColor: '#fff',
+          borderColor: 'rgba(201,168,76,0.3)',
+          borderWidth: 1,
+          callbacks: {
+            label: function(ctx) { return ctx.parsed.y.toLocaleString('tr-TR', {minimumFractionDigits:2}) + ' ' + data.currency; }
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { color: 'rgba(255,255,255,0.04)' },
+          ticks: { color: 'rgba(255,255,255,0.4)', maxTicksLimit: 12, font: { size: 10 } }
+        },
+        y: {
+          grid: { color: 'rgba(255,255,255,0.04)' },
+          ticks: { color: 'rgba(255,255,255,0.4)', font: { size: 10 }, callback: function(v) { return v.toLocaleString('tr-TR'); } }
+        }
+      }
+    }
+  });
+}
+
 // Sayfa yüklenince oturum kontrol
 document.addEventListener('DOMContentLoaded', () => {
   oturumKontrol();
