@@ -84,7 +84,7 @@ YatirimAnaliz/
 
 ## 👤 Geliştirici
 
-Yapay zeka destekli finansal analiz ve siber güvenlik platformu.
+- CANER İŞLER -
 
 ---
 
