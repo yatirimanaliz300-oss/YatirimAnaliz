@@ -90,6 +90,21 @@ class AnalysisResult(BaseModel):
     risk_color: str = "#ffab00"
     model_config = {"extra": "allow"}
 
+# --- Cache (5 dakika TTL) ---
+import time as _time
+_cache = {}
+_CACHE_TTL = 300  # 5 dakika
+
+def cache_get(key):
+    if key in _cache:
+        val, ts = _cache[key]
+        if _time.time() - ts < _CACHE_TTL:
+            return val
+    return None
+
+def cache_set(key, val):
+    _cache[key] = (val, _time.time())
+
 # --- FastAPI App ---
 BASE_DIR = Path(__file__).resolve().parent
 limiter = Limiter(key_func=get_remote_address, default_limits=["300/hour"])
@@ -100,6 +115,10 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
 app.mount("/static", StaticFiles(directory=str(BASE_DIR)), name="static")
+
+@app.get("/health")
+async def health_check():
+    return {"status": "ok", "timestamp": __import__('time').time()}
 
 @app.get("/")
 async def read_index():
@@ -464,13 +483,18 @@ def _yf_fetch(symbols: list, period="1d") -> dict:
 
 @app.get("/api/prices/stocks", tags=["Fiyatlar"])
 async def get_stock_prices():
+    cached = cache_get("stocks")
+    if cached: return cached
     symbols = ["AAPL","MSFT","NVDA","TSLA","AMZN","GOOGL","GARAN.IS","THYAO.IS","KCHOL.IS","AKBNK.IS"]
     loop = asyncio.get_running_loop()
     data = await loop.run_in_executor(None, functools.partial(_yf_fetch, symbols))
+    cache_set("stocks", data)
     return data
 
 @app.get("/api/prices/gold", tags=["Fiyatlar"])
 async def get_gold_prices():
+    cached = cache_get("gold")
+    if cached: return cached
     symbols = ["GC=F"]
     loop = asyncio.get_running_loop()
     data = await loop.run_in_executor(None, functools.partial(_yf_fetch, symbols))
@@ -491,10 +515,14 @@ async def get_gold_prices():
     for g in gold_types:
         p = gram_usd * g["gram"] * g["karat"]
         result.append({"name": g["name"], "icon": g["icon"], "price_usd": round(p, 2), "change": round(chg, 2)})
-    return {"ounce_usd": round(oz_usd, 2), "gram_usd": round(gram_usd, 2), "types": result}
+    resp = {"ounce_usd": round(oz_usd, 2), "gram_usd": round(gram_usd, 2), "types": result}
+    cache_set("gold", resp)
+    return resp
 
 @app.get("/api/prices/commodities", tags=["Fiyatlar"])
 async def get_commodity_prices():
+    cached = cache_get("commodities")
+    if cached: return cached
     symbols = ["GC=F","SI=F","PL=F","PA=F","BZ=F","CL=F","NG=F","HG=F"]
     names = {"GC=F":"Altın (XAU)","SI=F":"Gümüş (XAG)","PL=F":"Platin","PA=F":"Paladyum","BZ=F":"Brent Petrol","CL=F":"WTI Petrol","NG=F":"Doğal Gaz","HG=F":"Bakır"}
     icons = {"GC=F":"🥇","SI=F":"🥈","PL=F":"⚪","PA=F":"🔘","BZ=F":"🛢️","CL=F":"⛽","NG=F":"🔥","HG=F":"🟤"}
@@ -504,6 +532,7 @@ async def get_commodity_prices():
     for s in symbols:
         d = data.get(s, {"price": 0, "change": 0})
         result.append({"symbol": s, "name": names[s], "icon": icons[s], "price_usd": d["price"], "change": d["change"]})
+    cache_set("commodities", result)
     return result
 
 @app.get("/api/prices/history/{symbol}", tags=["Fiyatlar"])

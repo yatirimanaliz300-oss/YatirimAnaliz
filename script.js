@@ -415,10 +415,357 @@ async function apiFetch(path, body) {
 
 function esc(s) { if(!s) return ''; return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
+var _lastAnaliz = {};
+
+function trSafe(s) {
+  if (!s) return '';
+  return String(s)
+    .replace(/ş/g,'s').replace(/Ş/g,'S')
+    .replace(/ç/g,'c').replace(/Ç/g,'C')
+    .replace(/ğ/g,'g').replace(/Ğ/g,'G')
+    .replace(/ı/g,'i').replace(/İ/g,'I')
+    .replace(/ö/g,'o').replace(/Ö/g,'O')
+    .replace(/ü/g,'u').replace(/Ü/g,'U')
+    .replace(/â/g,'a').replace(/Â/g,'A')
+    .replace(/î/g,'i').replace(/Î/g,'I')
+    .replace(/û/g,'u').replace(/Û/g,'U');
+}
+
+function pdfIndir(type) {
+  var data = _lastAnaliz[type];
+  if (!data) { alert('Once bir analiz yapin.'); return; }
+  if (!window.jspdf) { alert('PDF kutuphanesi yuklenemedi. Sayfayi yenileyip tekrar deneyin.'); return; }
+
+  var { jsPDF } = window.jspdf;
+  var doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  var W = 210, H = 297, mx = 18, cw = W - mx * 2;
+  var y = 0;
+
+  // Renk paletleri
+  var darkBg = [10, 15, 30];
+  var cardBg = [18, 24, 42];
+  var accent = [201, 168, 76];
+  var green = [16, 185, 129];
+  var red = [239, 68, 68];
+  var blue = [6, 182, 212];
+  var white = [226, 232, 240];
+  var muted = [148, 163, 184];
+  var indigo = [129, 140, 248];
+
+  function newPage() { doc.addPage(); y = 0; drawBg(); }
+  function checkPage(need) { if (y + need > H - 20) newPage(); }
+
+  function drawBg() {
+    doc.setFillColor(...darkBg);
+    doc.rect(0, 0, W, H, 'F');
+    // üst gradient bar
+    doc.setFillColor(...accent);
+    doc.rect(0, 0, W, 3, 'F');
+  }
+
+  function drawHeader() {
+    drawBg();
+    // Logo alanı
+    doc.setFillColor(...cardBg);
+    doc.roundedRect(mx, 12, cw, 38, 4, 4, 'F');
+    doc.setFontSize(22);
+    doc.setTextColor(...accent);
+    doc.text('YATIRIM ANALIZ', mx + 14, 30);
+    doc.setFontSize(9);
+    doc.setTextColor(...muted);
+    doc.text('AI Destekli Finansal Analiz & Siber Guvenlik Platformu', mx + 14, 38);
+    doc.text(new Date().toLocaleDateString('tr-TR') + ' - ' + new Date().toLocaleTimeString('tr-TR'), W - mx - 14, 38, { align: 'right' });
+    y = 58;
+  }
+
+  function drawSectionTitle(icon, title) {
+    checkPage(14);
+    doc.setFillColor(...accent);
+    doc.rect(mx, y, 3, 10, 'F');
+    doc.setFontSize(13);
+    doc.setTextColor(...white);
+    doc.text(icon + '  ' + trSafe(title), mx + 7, y + 7.5);
+    y += 16;
+  }
+
+  function drawCard(x, w, h, fn) {
+    checkPage(h + 4);
+    doc.setFillColor(...cardBg);
+    doc.roundedRect(x, y, w, h, 3, 3, 'F');
+    doc.setDrawColor(40, 50, 70);
+    doc.roundedRect(x, y, w, h, 3, 3, 'S');
+    fn(x, y);
+    y += h + 6;
+  }
+
+  function drawText(text, x, yy, size, color, maxW) {
+    doc.setFontSize(size || 9);
+    doc.setTextColor(...(color || muted));
+    var safe = trSafe(text);
+    if (maxW) {
+      var lines = doc.splitTextToSize(safe, maxW);
+      doc.text(lines, x, yy);
+      return lines.length * (size || 9) * 0.45;
+    }
+    doc.text(safe, x, yy);
+    return (size || 9) * 0.45;
+  }
+
+  function drawScoreCircle(score, cx, cy, label) {
+    var clr = score >= 70 ? green : (score >= 40 ? accent : red);
+    doc.setDrawColor(...clr);
+    doc.setLineWidth(1.5);
+    doc.circle(cx, cy, 14);
+    doc.setFontSize(20);
+    doc.setTextColor(...clr);
+    doc.text(String(score), cx, cy + 2, { align: 'center' });
+    doc.setFontSize(7);
+    doc.setTextColor(...muted);
+    doc.text(label || 'Skor', cx, cy + 9, { align: 'center' });
+  }
+
+  function drawBulletList(items, color) {
+    if (!items || !items.length) return;
+    items.forEach(function(item) {
+      checkPage(10);
+      doc.setFillColor(...(color || accent));
+      doc.circle(mx + 4, y + 2, 1.2, 'F');
+      var lines = doc.splitTextToSize(trSafe(item), cw - 12);
+      doc.setFontSize(8.5);
+      doc.setTextColor(...white);
+      doc.text(lines, mx + 9, y + 3.5);
+      y += lines.length * 4.2 + 2;
+    });
+  }
+
+  function drawFooter() {
+    doc.setFontSize(7);
+    doc.setTextColor(...muted);
+    doc.text('Yatirim Analiz - AI Destekli Finansal Analiz Platformu | yatirim-analiz-60958.web.app', W / 2, H - 8, { align: 'center' });
+    doc.text('Bu rapor yapay zeka tarafindan olusturulmustur. Yatirim tavsiyesi degildir.', W / 2, H - 4, { align: 'center' });
+  }
+
+  // ===== HEADER =====
+  drawHeader();
+
+  // ===== TİP'E GÖRE İÇERİK =====
+  if (type === 'link') {
+    // Başlık
+    drawSectionTitle('[LINK]', 'URL Risk Analizi Raporu');
+
+    // Skor kartı
+    drawCard(mx, cw, 40, function(x, cy) {
+      drawScoreCircle(data.score || 0, x + cw - 24, cy + 20, 'Risk');
+      drawText('Durum: ' + (data.status || '-'), x + 10, cy + 14, 12, white);
+      drawText('Hedef: ' + (data.target || '-'), x + 10, cy + 22, 8.5, muted, cw - 56);
+      if (data.threat_type) drawText('Tehdit: ' + data.threat_type, x + 10, cy + 30, 8.5, red);
+      if (data.risk_level) drawText('Risk Seviyesi: ' + data.risk_level, x + 10, cy + 35, 8.5, accent);
+    });
+
+    // Site amacı
+    if (data.site_purpose) {
+      drawSectionTitle('[i]', 'Site Amaci');
+      drawCard(mx, cw, 16, function(x, cy) {
+        drawText(data.site_purpose, x + 8, cy + 10, 9, white, cw - 16);
+      });
+    }
+
+    // Bulgular
+    if (data.reasons && data.reasons.length) {
+      drawSectionTitle('[!]', 'Bulgular');
+      drawBulletList(data.reasons, red);
+    }
+
+    // Açıklama
+    if (data.explanation) {
+      drawSectionTitle('[?]', 'Detayli Analiz');
+      checkPage(20);
+      var expLines = doc.splitTextToSize(trSafe(data.explanation), cw - 8);
+      var expH = expLines.length * 4 + 12;
+      drawCard(mx, cw, Math.min(expH, 80), function(x, cy) {
+        doc.setFontSize(8.5);
+        doc.setTextColor(...white);
+        doc.text(expLines.slice(0, 18), x + 6, cy + 8);
+      });
+    }
+
+    // AI Yorumu
+    if (data.ai_comment) {
+      drawSectionTitle('[AI]', 'Yapay Zeka Yorumu');
+      checkPage(20);
+      var aiLines = doc.splitTextToSize(trSafe(data.ai_comment), cw - 8);
+      var aiH = aiLines.length * 4 + 12;
+      drawCard(mx, cw, Math.min(aiH, 80), function(x, cy) {
+        doc.setFontSize(8.5);
+        doc.setTextColor(...indigo);
+        doc.text(aiLines.slice(0, 18), x + 6, cy + 8);
+      });
+    }
+
+    // Eylem planı
+    if (data.action_plan && data.action_plan.length) {
+      drawSectionTitle('[v]', 'Eylem Plani');
+      drawBulletList(data.action_plan, green);
+    }
+
+  } else if (type === 'eposta') {
+    drawSectionTitle('[MESAJ]', 'Mesaj Analizi Raporu');
+
+    drawCard(mx, cw, 40, function(x, cy) {
+      drawScoreCircle(data.score || 0, x + cw - 24, cy + 20, 'Risk');
+      drawText('Durum: ' + (data.status || '-'), x + 10, cy + 14, 12, white);
+      if (data.threat_type) drawText('Tehdit: ' + data.threat_type, x + 10, cy + 24, 8.5, red);
+      if (data.risk_level) drawText('Risk Seviyesi: ' + data.risk_level, x + 10, cy + 30, 8.5, accent);
+    });
+
+    if (data.reasons && data.reasons.length) {
+      drawSectionTitle('[!]', 'Bulgular');
+      drawBulletList(data.reasons, red);
+    }
+
+    if (data.explanation) {
+      drawSectionTitle('[?]', 'Detayli Analiz');
+      var eLines = doc.splitTextToSize(trSafe(data.explanation), cw - 8);
+      var eH = eLines.length * 4 + 12;
+      drawCard(mx, cw, Math.min(eH, 80), function(x, cy) {
+        doc.setFontSize(8.5);
+        doc.setTextColor(...white);
+        doc.text(eLines.slice(0, 18), x + 6, cy + 8);
+      });
+    }
+
+    if (data.ai_comment) {
+      drawSectionTitle('[AI]', 'Yapay Zeka Yorumu');
+      var aiL2 = doc.splitTextToSize(trSafe(data.ai_comment), cw - 8);
+      var aiH2 = aiL2.length * 4 + 12;
+      drawCard(mx, cw, Math.min(aiH2, 80), function(x, cy) {
+        doc.setFontSize(8.5);
+        doc.setTextColor(...indigo);
+        doc.text(aiL2.slice(0, 18), x + 6, cy + 8);
+      });
+    }
+
+    if (data.action_plan && data.action_plan.length) {
+      drawSectionTitle('[v]', 'Eylem Plani');
+      drawBulletList(data.action_plan, green);
+    }
+
+  } else if (type === 'yatirim') {
+    var assetName = data._assetName || 'VARLIK';
+    drawSectionTitle('[YATIRIM]', assetName + ' - Yatirim Analizi Raporu');
+
+    // Skor + Tier
+    var tier = getTier(data.score || 0);
+    drawCard(mx, cw, 45, function(x, cy) {
+      drawScoreCircle(data.score || 0, x + cw - 24, cy + 22, 'Guven');
+      drawText(assetName, x + 10, cy + 14, 14, accent);
+      drawText('Durum: ' + (data.status || '-'), x + 10, cy + 22, 9, white);
+      drawText('Tier: ' + tier.name, x + 10, cy + 28, 9, accent);
+      if (data.risk_level) drawText('Risk: ' + data.risk_level, x + 10, cy + 34, 8.5, red);
+      if (data.trend) drawText('Trend: ' + data.trend, x + 10, cy + 40, 8.5, green);
+    });
+
+    // Özet
+    if (data.summary) {
+      drawSectionTitle('[i]', 'Ozet');
+      var sumLines = doc.splitTextToSize(trSafe(data.summary), cw - 8);
+      drawCard(mx, cw, Math.min(sumLines.length * 4 + 12, 50), function(x, cy) {
+        doc.setFontSize(8.5);
+        doc.setTextColor(...white);
+        doc.text(sumLines.slice(0, 12), x + 6, cy + 8);
+      });
+    }
+
+    // Hızlı İstatistikler
+    var stats = [];
+    if (data.risk_level) stats.push('Risk: ' + data.risk_level);
+    if (data.volatility) stats.push('Volatilite: ' + data.volatility);
+    if (data.market_sentiment) stats.push('Piyasa Duyarliligi: ' + data.market_sentiment);
+    if (data.trend) stats.push('Trend: ' + data.trend);
+    if (data.investment_horizon) stats.push('Yatirim Vadesi: ' + data.investment_horizon);
+    if (data.category) stats.push('Kategori: ' + data.category);
+    if (stats.length) {
+      drawSectionTitle('[#]', 'Hizli Istatistikler');
+      var halfW = (cw - 6) / 2;
+      for (var si = 0; si < stats.length; si += 2) {
+        checkPage(12);
+        doc.setFillColor(...cardBg);
+        doc.roundedRect(mx, y, halfW, 10, 2, 2, 'F');
+        drawText(stats[si], mx + 4, y + 6.5, 8.5, white);
+        if (stats[si + 1]) {
+          doc.setFillColor(...cardBg);
+          doc.roundedRect(mx + halfW + 6, y, halfW, 10, 2, 2, 'F');
+          drawText(stats[si + 1], mx + halfW + 10, y + 6.5, 8.5, white);
+        }
+        y += 13;
+      }
+    }
+
+    // Avantajlar
+    if (data.pros && data.pros.length) {
+      drawSectionTitle('[+]', 'Avantajlar');
+      drawBulletList(data.pros, green);
+    }
+
+    // Riskler
+    if (data.cons && data.cons.length) {
+      drawSectionTitle('[-]', 'Riskler');
+      drawBulletList(data.cons, red);
+    }
+
+    // Temel Metrikler
+    if (data.key_metrics) {
+      var km = data.key_metrics;
+      drawSectionTitle('[M]', 'Temel Metrikler');
+      var mItems = [];
+      if (km.potential_return) mItems.push('Potansiyel Getiri: ' + km.potential_return);
+      if (km.risk_reward) mItems.push('Risk/Odul: ' + km.risk_reward);
+      if (km.market_dominance) mItems.push('Piyasa Hakimiyeti: ' + km.market_dominance);
+      if (km.liquidity) mItems.push('Likidite: ' + km.liquidity);
+      drawBulletList(mItems, accent);
+    }
+
+    // Detaylı rapor (markdown)
+    if (data.full_report) {
+      drawSectionTitle('[R]', 'Detayli AI Raporu');
+      var plainReport = trSafe(data.full_report.replace(/[#*_`>]/g, '').replace(/\n{3,}/g, '\n\n'));
+      var rLines = doc.splitTextToSize(plainReport, cw - 8);
+      var pageLines = 36;
+      for (var ri = 0; ri < rLines.length; ri += pageLines) {
+        checkPage(pageLines * 4 + 16);
+        var chunk = rLines.slice(ri, ri + pageLines);
+        doc.setFillColor(...cardBg);
+        var cH = chunk.length * 4 + 12;
+        doc.roundedRect(mx, y, cw, cH, 3, 3, 'F');
+        doc.setFontSize(8);
+        doc.setTextColor(...white);
+        doc.text(chunk, mx + 5, y + 8);
+        y += cH + 4;
+      }
+    }
+  }
+
+  // Footer her sayfaya
+  var totalPages = doc.internal.getNumberOfPages();
+  for (var p = 1; p <= totalPages; p++) {
+    doc.setPage(p);
+    drawFooter();
+    doc.setFontSize(7);
+    doc.setTextColor(...muted);
+    doc.text('Sayfa ' + p + ' / ' + totalPages, W - mx, H - 8, { align: 'right' });
+  }
+
+  // İndir
+  var titles = { link: 'Link-Analiz', eposta: 'Mesaj-Analiz', yatirim: 'Yatirim-Analiz' };
+  var filename = titles[type] + '-Rapor-' + new Date().toISOString().slice(0, 10) + '.pdf';
+  doc.save(filename);
+}
+
 function renderSonuc(type, data) {
   document.getElementById(type+'-yukleniyor').style.display = 'none';
   document.getElementById(type+'-sonuc').style.display = 'block';
   if (!data) { alert('Hata oluştu.'); sifirla(type); return; }
+  _lastAnaliz[type] = data;
 
   document.getElementById(type+'-durum-yazi').textContent = data.status || '?';
   document.getElementById(type+'-skor-rakam').textContent = data.score ?? 0;
@@ -534,6 +881,8 @@ async function yatirimAnalizEt(e) {
   document.getElementById('yatirim-yukleniyor').style.display = 'none';
   document.getElementById('yatirim-sonuc').style.display = 'block';
   if (!d) { alert('Hata.'); sifirla('yatirim'); return; }
+  d._assetName = n.toUpperCase();
+  _lastAnaliz['yatirim'] = d;
 
   // Header
   document.getElementById('yatirim-hedef-isim').textContent = n.toUpperCase();
@@ -998,17 +1347,30 @@ function animateCounters() {
   });
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   if (_sparkInited) return;
   _sparkInited = true;
-  fetchLiveMarket();
-  setInterval(fetchLiveMarket, 60000);
-  // Ticker'ı TL fiyatlarıyla güncelle
-  setTimeout(fetchTickerData, 1000);
-  setInterval(fetchTickerData, 90000);
-  setTimeout(populatePiyasaPage, 2000);
   animateCounters();
-  setTimeout(loadMarketPulse, 1500);
+
+  // Backend'i hemen uyandır (Render free tier sleep)
+  fetch(API_BASE + '/docs').catch(function(){});
+
+  // Döviz kurunu hemen çek, sonra her şeyi paralel başlat
+  try {
+    var fxRes = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
+    var fxData = await fxRes.json();
+    if (fxData.rates?.TRY) _piyasaTRY = fxData.rates.TRY;
+  } catch(e) {}
+
+  // Hepsini paralel başlat - beklemeden
+  fetchLiveMarket();
+  fetchTickerData();
+  loadMarketPulse();
+  populatePiyasaPage();
+
+  // Periyodik güncelleme
+  setInterval(fetchLiveMarket, 60000);
+  setInterval(fetchTickerData, 90000);
 });
 
 
